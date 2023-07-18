@@ -3,7 +3,6 @@ import numpy as np
 from influxdb_client.client.write_api import SYNCHRONOUS
 import psutil 
 import socket
-from ina219 import INA219, DeviceRangeError
 
 
 class read_data:
@@ -73,11 +72,29 @@ class read_data:
         
         return data
     
-    def read_fake_ina219(ina):
+    def fake_measure(self, x1,x2,x3):
+        data= {
+            "blue house": self.read_fake_ina219(x1),
+            "red house": self.read_fake_ina219(x2),
+            "green house" :self.read_fake_ina219(x3) 
+        }
+        
+        bus_voltage=0
+        for key in data:bus_voltage += data[key]["bus_voltage"]
+        bus_voltage /= 3
+        
+        data["bus_average"]= {
+            "voltage": float(round(bus_voltage,3)),
+            "power":float(round(0.1*(bus_voltage**2),3))
+        }
+        
+        return data
+    
+    def read_fake_ina219(self, x):
         result = {
-            "voltage": 211.2*np.sin(time.time_ns),
-            "power": 111.2*np.sin(time.time_ns),
-            "bus_voltage": 311.2*np.sin(time.time_ns)
+            "voltage": float(x*np.sin(time.time_ns())),
+            "power": float(x*np.sin(time.time_ns())),
+            "bus_voltage": float(x*np.sin(time.time_ns()))
         }
         return result
     
@@ -102,7 +119,13 @@ class read_data:
         }
         return data
     
+    def measure_network(self):
+        net_stat = psutil.net_io_counters(pernic=True)["eth0"]
+        net_in = net_stat.bytes_recv
+        net_out = net_stat.bytes_sent
 
+        return net_in,net_out
+        
 class upload_data:
     """ Simple class to upload data to InfluxDB
         Make a new object for each bucket, organization or token
@@ -151,6 +174,48 @@ class upload_data:
         for key in data:
             point = influxdb_client.Point(key).tag("Machine", machine_name).field(data[key][0], data[key][1])
             self.write_api.write(bucket=self.bucket, org=self.org, record=point)
+    
+    # def net_usage(self, net_in_1, net_out_1, net_in_2, net_out_2):
+    #     """
+    #     part of the code is from here: https://stackoverflow.com/questions/62020140/psutil-network-monitoring-script
+    #     modifoed to expot data
+    #     """ 
+
+    #     net_in = round((net_in_2 - net_in_1) / 1024 / 1024, 3)
+    #     net_out = round((net_out_2 - net_out_1) / 1024 / 1024, 3)
+
+    #     machine_name=socket.gethostname()
+    #     # create dictionary were the keys are the point names : [field name, field data]
+    #     data={
+    #         "upload": ["MB", net_out],
+    #         "download": ["MB", net_in]
+    #     }
+        
+    #     for key in data:
+    #         point = influxdb_client.Point(key).tag("Machine", machine_name).field(data[key][0], data[key][1])
+    #         self.write_api.write(bucket=self.bucket, org=self.org, record=point)
+
+    def net_usage(self):
+        """
+        part of the code is from here: https://stackoverflow.com/questions/62020140/psutil-network-monitoring-script
+        modifoed to expot data
+        """ 
+        
+        net_stat = psutil.net_io_counters(pernic=True)["eth0"]
+        net_in = round(net_stat.bytes_recv / 1024 /1024, 3)
+        net_out = round(net_stat.bytes_sent / 1024 /1024, 3)
+        
+        machine_name=socket.gethostname()
+        # create dictionary were the keys are the point names : [field name, field data]
+        data={
+            "upload": net_in,
+            "download": net_out
+        }
+        
+        for key in data:
+            point = influxdb_client.Point("network").tag("Machine", machine_name).field(key, data[key])
+            self.write_api.write(bucket=self.bucket, org=self.org, record=point)
+        
     
     def log_generic(self, data,point_name:str ="m1", tag_name:str = "tag1"):
         """

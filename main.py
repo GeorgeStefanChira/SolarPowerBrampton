@@ -10,8 +10,19 @@ if __name__== "__main__":
     get_data_model = read_data()
     
 
-    for i in range(100):
+    for i in range(360):
+        start_time=time.time_ns()
+        
+        upload_model_to_cloud.net_usage()
+        
         upload_model_to_cloud.log_cpu_data()
-        data = get_data_model.create_false_data()
+        data = get_data_model.fake_measure(10,23,45)
         upload_model_to_cloud.log_generic(data=data,point_name="Electricity Gen",tag_name="House")
-        time.sleep(1)
+        
+        
+        
+        end_time=time.time_ns()
+        duration=max(1,(10+(start_time-end_time)*1e-9)) 
+        print(duration, end_time, start_time)
+        time.sleep(duration)
+        
