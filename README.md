@@ -9,11 +9,11 @@ Seconds, it sends the formatted data to an InfluxDB cloud service.
 
 A very specific solar panel model
 
-
 # Steps to install
 > this is designed for Raspberry pi. It won't work for windows machines without using wsl.
-----
 
+
+-----
 On your Rpi, navigate to the folder you want to use and download the code using the link:
 
     git clone https// 
@@ -37,3 +37,5 @@ Install packages:
 Get token
 
     export INFLUXDB_TOKEN= <your token here>
+=======
+
