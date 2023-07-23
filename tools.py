@@ -3,7 +3,7 @@ import numpy as np
 from influxdb_client.client.write_api import SYNCHRONOUS
 import psutil 
 import socket
-
+from ina219 import INA219
 
 class read_data:
     """A very tailored class, specific to the project
@@ -14,8 +14,8 @@ class read_data:
             Personally I will only use it for a specific purpose
         """
         
-        # SHUNT_OHMS = 0.1
-        # MAX_EXPECTED_AMPS = 3
+        self.SHUNT_OHMS = 0.1
+        self.MAX_EXPECTED_AMPS = 3
         
 
 
@@ -45,20 +45,24 @@ class read_data:
         #send
         return result
     
-    def measure(self, SHUNT_OHMS, MAX_EXPECTED_AMPS, address):
-        ina_red = INA219(SHUNT_OHMS, MAX_EXPECTED_AMPS, address)
+    def measure(self):
+        ina_red = INA219(self.SHUNT_OHMS, self.MAX_EXPECTED_AMPS, address=0x40)
         ina_red.configure(ina_red.RANGE_16V, ina_red.GAIN_AUTO)
         
-        ina_green = INA219(SHUNT_OHMS, MAX_EXPECTED_AMPS, address)
+        ina_green = INA219(self.SHUNT_OHMS, self.MAX_EXPECTED_AMPS, address=0x41)
         ina_green.configure(ina_green.RANGE_16V, ina_green.GAIN_AUTO)
         
-        ina_blue = INA219(SHUNT_OHMS, MAX_EXPECTED_AMPS, address)
+        ina_blue = INA219(self.SHUNT_OHMS, self.MAX_EXPECTED_AMPS, address=0x44)
         ina_blue.configure(ina_blue.RANGE_16V, ina_blue.GAIN_AUTO)
+        
+        ina_bus = INA219(self.SHUNT_OHMS, self.MAX_EXPECTED_AMPS, address=0x44)
+        ina_bus.configure(ina_blue.RANGE_16V, ina_bus.GAIN_AUTO)
         
         data= {
             "blue house": self.read_ina219(ina_blue),
             "red house": self.read_ina219(ina_red),
-            "green house" :self.read_ina219(ina_green) 
+            "green house" :self.read_ina219(ina_green),
+            "bus": self.read_ina219(ina_bus)
         }
         
         bus_voltage=0
@@ -195,21 +199,17 @@ class upload_data:
     #         point = influxdb_client.Point(key).tag("Machine", machine_name).field(data[key][0], data[key][1])
     #         self.write_api.write(bucket=self.bucket, org=self.org, record=point)
 
-    def net_usage(self):
+    def net_usage(self, net_in, net_out):
         """
         part of the code is from here: https://stackoverflow.com/questions/62020140/psutil-network-monitoring-script
         modifoed to expot data
         """ 
         
-        net_stat = psutil.net_io_counters(pernic=True)["eth0"]
-        net_in = round(net_stat.bytes_recv / 1024 /1024, 3)
-        net_out = round(net_stat.bytes_sent / 1024 /1024, 3)
-        
         machine_name=socket.gethostname()
         # create dictionary were the keys are the point names : [field name, field data]
         data={
-            "upload": net_in,
-            "download": net_out
+            "upload": float(net_in),
+            "download": float(net_out)
         }
         
         for key in data:
