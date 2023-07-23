@@ -9,14 +9,26 @@ if __name__== "__main__":
     
     get_data_model = read_data()
     
+    hash_netin1, hash_netout2 = 0.0, 0.0
 
     for i in range(360):
         start_time=time.time_ns()
         
-        upload_model_to_cloud.net_usage()
         
+        # net measuring part
+        net_in, net_out = get_data_model.measure_network()
+        
+        net_in  = (net_in-hash_netin1) /1024 /1024
+        net_out = (net_out-hash_netout2) / 1024 /1024
+        
+        hash_netin1, hash_netout2 =get_data_model.measure_network()
+        
+        upload_model_to_cloud.net_usage(net_in=net_in, net_out=net_out)
+        
+        
+        # send cpu and ram data 
         upload_model_to_cloud.log_cpu_data()
-        data = get_data_model.fake_measure(10,23,45)
+        data = get_data_model.measure()
         upload_model_to_cloud.log_generic(data=data,point_name="Electricity Gen",tag_name="House")
         
         
