@@ -359,13 +359,13 @@ class upload_data_local_influx:
                     point.append(
                         {
                         "measurement": point_name,
-                        "tags":{ tag_name: _tag},
+                        "tags":{tag_name: _tag},
                         "time": time.time(),
-                        "fields": {value_name, float(tag_dict[value_name])}
+                        "fields": {value_name: float(tag_dict[value_name])}
                         }
                     )
         except:
-            print("makeing the points failed")
+            print("making the points failed")
         
         try:
             self.client.write_points(point)

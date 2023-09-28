@@ -2,16 +2,16 @@ from tools import upload_data_influxdb_cloud, upload_data_local_influx, read_dat
 import time, os
 
 if __name__== "__main__":
-    # send = upload_data_influxdb_cloud(bucket="Solar-Power",
-    #                                     org="B2Z",
-    #                                     token= os.environ.get("INFLUXDB_TOKEN"),
-    #                                     url="https://eu-central-1-1.aws.cloud2.influxdata.com") 
+    send = upload_data_influxdb_cloud(bucket="Solar Power",
+                                        org="B2Z",
+                                        token= os.environ.get("INFLUXDB_TOKEN"),
+                                        url="https://eu-central-1-1.aws.cloud2.influxdata.com") 
     
-    send = upload_data_local_influx(ifuser="admin",
-                                    ifpass="you_thought_this_was_it",
-                                    ifdb="b2z",
-                                    ifhost="",
-                                    ifport= 8086) 
+    # send = upload_data_local_influx(ifuser="admin",
+    #                                 ifpass="you_thought_this_was_it",
+    #                                 ifdb="b2z",
+    #                                 ifhost="",
+    #                                 ifport= 8086) 
  
     
     
@@ -34,8 +34,8 @@ if __name__== "__main__":
         hash_netin1, hash_netout2 = net_in, net_out
         
         # send cpu and ram data 
-        data = model.measure_cpu()
-        send.cpu_data(data)
+        cpu,ram = model.measure_cpu()
+        send.cpu_data(cpu,ram)
         
         # voltage from the model
         data = model.fake_measure()
