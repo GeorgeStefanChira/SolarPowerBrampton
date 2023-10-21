@@ -1,4 +1,6 @@
-numpy
-influxdb-client
-psutil
-pi-ina219
+influxdb-client==1.36.1
+numpy==1.25.1
+pi-ina219==1.4.1
+psutil==5.9.5
+RPi.GPIO==0.7.1
+influxdb==5.3.1
