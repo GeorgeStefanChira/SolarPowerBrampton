@@ -33,17 +33,17 @@ To measure energy flow, an [INA219](https://learn.adafruit.com/adafruit-ina219-c
 
 *This script reads all the data from the INA219 modules and sends it to a database.* That's the short description. Here is the long one:
 
-The code connects to the database and then it starts taking measurements and sending them. At the end, it waits for all the extra time needed and repeats the last two steps. This is done in main.py. 
+This code allows you to interface with an InfluxDB database. This database can be hosted locally on your device or on the cloud. Whichever method you use, simply mark it into the configuration file. The data measured is given by voltage sensors (the INA219 modules) in the Solar Model and CPU, RAM and network usage in the Raspberry Pi. The code should give no errors unless they impede critical functionality. Additionally, all errors light up the on board LED.
 
-There is only one class that takes measurements, located in tools.py called <code>read_data</code>. Different measurements have different functions in that class. Each function returns a value or a set of values if more than one measurement is taken. **NOTE**: Energy/Electricity values are taken 10 times in a ~1 second period and averaged. Other measurements are only taken once.
+There is only one class that takes measurements, located in [tools.py](/tools.py) called <code>read_data</code>. Different measurements have different functions in that class. Each function returns a value or a set of values if more than one measurement is taken. **NOTE**: Energy/Electricity values are taken 10 times in a ~1 second period and averaged. Other measurements are only taken once.
 
 Logging these measurements into a database is done with [InfluxDB](https://www.influxdata.com/) API. There are two options:
-1. local_solution.py - to log data in a locally hosted InfluxDB database
-2. cloud_solution.py - to log data using InfluxDB Cloud.  
+1. [local_solution.py](/local_solution.py) - to log data in a locally hosted InfluxDB database
+2. [cloud_solution.py](/cloud_solution.py) - to log data using InfluxDB Cloud.  
 
-autostart.py is a file that is run at startup. It makes sure that everything works as it should and updates the code if needed
+[autostart.py](/autostart.py) is a file that is run at startup. It makes sure that everything works as it should and updates the code if needed
 
-All errors are handled by the rpi_errors.py file. There are different levels of errors because this code has to be operational even if someone who is not familiar with programming is using it. The following errors are used throughout the code:
+All errors are handled by the [rpi_errors.py](/rpi_errors.py) file. There are different levels of errors because this code has to be operational even if someone who is not familiar with programming is using it. The following errors are used throughout the code:
   * Critical: only used when the code cannot function at all without solving this error, and it requires debugging.
   * Connection: when internet connection is broken (maybe someone forgot to change to start a hotspot/ the SIM module is disconnected)
   * Sending: it failed to log a point to the database. Blinks the LED twice to alert the user.
@@ -63,10 +63,10 @@ All errors are handled by the rpi_errors.py file. There are different levels of 
 1. Clone the repo:
         
         git clone https://github.com/GeorgeStefanChira/SolarPowerBrampton
-2. Edit config.svg file:
+2. Edit [config.ini](/config.ini) file:
 
         cd SolarPowerBrampton 
-        nano config.svg
+        nano config.ini
 3. Run autostart.py
 
         python3 autostart.py
@@ -83,7 +83,7 @@ All errors are handled by the rpi_errors.py file. There are different levels of 
 
         sudo python -m venv ~/SolarPowerBrampton/env
         source env/bin/activate
-3. Install dependencies (because autostart.py won't work on WSL) 
+3. Install dependencies manually (autostart.py won't work on WSL) 
    
         sudo pip install -r requirements.txt
 
@@ -92,6 +92,16 @@ All errors are handled by the rpi_errors.py file. There are different levels of 
 
 There is no more documentation for this project, besides this README file and the report paper linked at the beginning. This is not exactly meant to be reused and the code is straightforward. But for more explanations here is a list of resources used to create this software:
 
+| Code  | Use case| source link |
+|---------|-----|------|
+| InfluxDB cloud API| [cloud_solution.py](/cloud_solution.py) | https://docs.influxdata.com/influxdb/cloud/api-guide/client-libraries/python/ |  
+| InfluxDB local API| [local_solution](/local_solution.py)|https://influxdb-python.readthedocs.io/en/latest/api-documentation.html|
+| InfluxDB database| install on RPi if using local solution| https://docs.influxdata.com/influxdb/v2/install/?t=Raspberry+Pi|
+| CPU data | [tools.py](/tools.py) / read_data()  |https://psutil.readthedocs.io/en/latest/#cpu|
+| RAM data|[tools.py](/tools.py) / read_data()  | https://psutil.readthedocs.io/en/latest/#memory|
+|Network data |[tools.py](/tools.py) / read_data()  |https://psutil.readthedocs.io/en/latest/#network |
+| INA219 module|[tools.py](/tools.py) / read_data()  | https://learn.adafruit.com/adafruit-ina219-current-sensor-breakout|
+| RPi.GPIO | [rpi_errors.py](/rpi_errors.py)/ blink() | |
 
 ## Contribution
 
@@ -99,15 +109,12 @@ The only contribution accepted is, literally, explaining what I got wrong. If yo
 
 **So here is a list of issues I consider important:**
 
-* <mark> **Security issues** </mark>:  absolutely accepted. This is the main one I am afraid of and I consider it important. Please provide a link to the problem or explain it if possible. 
-* **Performance issues**: I will ignore any such issue unless the code underperforms. I don't want blazingly fast code for this project, otherwise, it could have been written in C++ (poorly considering it's me). By **underperforming** I mean that the main loop in the code doesn't execute usually within 3 seconds (this error would appear in errorfile.txt) or it occasionally takes more than 10 seconds. If this happens, then the code can't run. Please let me know about it.
+* <mark> **Security issues** </mark>:  This is the main one I am afraid of and I consider really important. Please provide a link to the problem or explain it if possible, any help here is more than welcome!
+* **Performance issues**: I don't consider performance improvements important unless the code underperforms. By **underperforming** I mean that the main loop in the code doesn't execute usually within 3 seconds (this error would appear in errorfile.txt) or it occasionally takes more than 10 seconds. If this happens, then the code can't run. Please let me know about it.
 * **Unexpected Bugs**: if there is a bug that is not accounted for, let me know. Additionally, any critical errors that are not caused by misuse or oversight are also important.
 
 **I will not be updating the functionality of this code any more**
-If you want to make this into a more versatile project, then look at my other project: [to be added soon]. It is based on this one but is still open for contribution, changes and improvements.
-
-**If you want to make something similar and you need a few changes**
-Then feel free to fork this project! There is no need to add more stuff here but feel free to use this as a base model. 
+If you want to make something similar and you need a few changes, then feel free to fork this project! There is no need to add more stuff here but feel free to use this as a base model (if you think it's good enough). 
 
 If you are currently working with, or for, Brampton2Zero to either modify the Solar Model this code was meant for, or a similar project that could benefit from this code, please contact me! Hopefully, I can help you!
 

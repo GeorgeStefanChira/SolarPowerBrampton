@@ -28,16 +28,36 @@ If configured locally:
 """
 
 import os, time
-
+import subprocess 
+import rpi_errors as rpie
 required_files= ["main.py", "tools.py", "autostart.py", "requirements.txt"]
 
-def check_files(dirpath:str, files:[str,...]):
-    error_list=[]
-    for file in files:
-        if os.path.isfile((dirpath+file)):
-            print(f"CRITCAL ERROR! file {file} could not be found!")
-            error_list.append(file)
-    if len(error_list) != 0:
-        # reinstall from git
-        pass
+def check_files(dirpath:str=None, files:[str,...]=None):
+    if dirpath is None: dirpath= ""
+    if files is None: 
+        files= ["main.py","cloud_solution.py", "local_solution.py","rpi_errors.py",
+                "tools.py", "requirements.txt", "errorfile.txt", "config.ini", "badfile.txt"]
     
+    for file in files:
+        if not os.path.isfile((dirpath+file)):
+            rpie.ShortError(f"{file} is missing. Attempting install")
+            # reinstall from git
+            try:
+                copy_file = subprocess.run(["wget", f"https://raw.github.com/GeorgeStefanChira/SolarPowerBrampton/{file}"], 
+                                  stdout=subprocess.PIPE, 
+                                  text=True,
+                                   check=True)
+            except Exception as err:
+                raise rpie.CriticalError(f"Failed to copy file {file}. Critical part missing, error encountered: {err}")
+            
+def update_dependecies():
+    try:
+        copy_file = subprocess.run(["python3", "pip", "install", "-r", "requirements.txt"], 
+                            stdout=subprocess.PIPE, 
+                            text=True,
+                            check=True)
+    except Exception as err:
+        raise rpie.CriticalError()
+
+check_files()
+print("did it work")

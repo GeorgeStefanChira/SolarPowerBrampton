@@ -61,9 +61,9 @@ if __name__== "__main__":
         # if it's shorter than 0, time travel (or trivial bug) -> short error
         # if the absolute value is larger than 10, then there is a big problem with the code
         if time_elapsed > 3 and time_elapsed <10:
-            raise rpie.ShortError(f"Total loop time: {time_elapsed} is {time_elapsed-3} longer than expected")
+            rpie.ShortError(f"Total loop time: {time_elapsed} is {time_elapsed-3} longer than expected")
         elif time_elapsed < 0 :
-            raise rpie.ShortError(f"Time travel discovered! We have returned {time_elapsed} seconds in the past! Initial time at {start_time}, final: {end_time}")
+            rpie.ShortError(f"Time travel discovered! We have returned {time_elapsed} seconds in the past! Initial time at {start_time}, final: {end_time}")
         elif abs(time_elapsed) >10:
             raise rpie.CriticalError(f"This code is to buggy to work within it's time paramenters. Maintance required. Loop took {time_elapsed} seconds")
         else:

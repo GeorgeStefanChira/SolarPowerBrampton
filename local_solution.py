@@ -70,7 +70,7 @@ class upload_data_local_influx:
             Undetected". These values are then sent to 
         """
         if cpu_usage is None or ram_usage is None: 
-            raise rpie.SilentError("either ram or cpu data was not supplied")
+            rpie.SilentError("either ram or cpu data was not supplied")
             pass
         
         if machine_name is None:
@@ -90,7 +90,7 @@ class upload_data_local_influx:
         try:
             self.client.write_points(point)
         except Exception as err:
-            raise rpie.SilentError(f"cpu data was not sent to influxdb, error: {err}")
+            rpie.SilentError(f"cpu data was not sent to influxdb, error: {err}")
             
     def net_usage(self,machine_name:str=None, net_in:float=None, net_out:float=None):
         """
@@ -107,7 +107,7 @@ class upload_data_local_influx:
                         it then logs the measurment if it is availble. 
         """
         if net_in is None or net_out is None: 
-            raise rpie.ShortError("Some net data was not supplied")
+            rpie.ShortError("Some net data was not supplied")
             pass
         
         if machine_name is None:
@@ -126,7 +126,7 @@ class upload_data_local_influx:
         try:
             self.client.write_points(point)
         except Exception as err:
-            raise rpie.ShortError(f"cpu data was not sent to influxdb, error: {err}")
+            rpie.ShortError(f"cpu data was not sent to influxdb, error: {err}")
     
     def generic(self, data, point_name:str ="m1", tag_type:str = "tag1"):
         """
@@ -164,12 +164,12 @@ class upload_data_local_influx:
                         }
                     )
         except:
-            raise rpie.CriticalError(f"making the points failed, likely due to improper formating:{data}")
+            rpie.CriticalError(f"making the points failed, likely due to improper formating:{data}")
         
         try:
             self.client.write_points(point)
         except Exception as err:
-            raise rpie.SendingError(f"at time {time.time()} the process of writing to the api failed, bucket: {self.bucket}, org: {self.org}  \
+            rpie.SendingError(f"at time {time.time()} the process of writing to the api failed, bucket: {self.bucket}, org: {self.org}  \
                         \n the following error was encountered: {err}, {type(err)} \n \
                             the current values: {point_name}, {tag_type}:{_tag}, {value_name}:{tag_dict[value_name]}")
 

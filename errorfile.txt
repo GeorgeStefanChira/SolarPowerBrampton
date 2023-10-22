@@ -1,1 +1,5 @@
-2023/10/21/17:18:28| Token was not imported from the export, or it was omitted 
+2023/10/22/13:29:49| rpi_errors.pytools.py is missing. Attempting install 
+2023/10/22/13:29:50| Failed to copy file rpi_errors.pytools.py. Critical part missing, error encountered: Command '['wget', 'https://raw.github.com/GeorgeStefanChira/SolarPowerBrampton/rpi_errors.pytools.py']' returned non-zero exit status 8. 
+2023/10/22/13:30:21| badfile.txt is missing. Attempting install 
+2023/10/22/13:30:21| Failed to copy file badfile.txt. Critical part missing, error encountered: Command '['wget', 'https://raw.github.com/GeorgeStefanChira/SolarPowerBrampton/badfile.txt']' returned non-zero exit status 8. 
+2023/10/22/13:30:56| badfile.txt is missing. Attempting install 

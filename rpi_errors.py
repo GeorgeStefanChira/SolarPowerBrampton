@@ -27,7 +27,7 @@ https://forums.raspberrypi.com/viewtopic.php?p=136266&sid=3132a8d0ff07cb506a027c
     - Interface error
     - Data collection 
 """
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 import time
 
 def Blink(number:int=None):
