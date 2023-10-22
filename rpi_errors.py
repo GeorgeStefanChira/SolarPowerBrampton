@@ -36,7 +36,6 @@ def Blink(number:int=None):
         print("blinking")
      
 def Record(message:str="Generic Error"):
-    
     with open(file=f"errorfile.txt",mode="a+") as errorlog:
         date= time.localtime()
         errorlog.write(f"{date.tm_year}/{date.tm_mon}/{date.tm_mday}/{date.tm_hour}:{date.tm_min}:{date.tm_sec}| {message} \n")
