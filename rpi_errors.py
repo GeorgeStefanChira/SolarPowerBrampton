@@ -30,7 +30,6 @@ https://forums.raspberrypi.com/viewtopic.php?p=136266&sid=3132a8d0ff07cb506a027c
 import RPi.GPIO as GPIO
 import time, os
 
-os.system('echo gpio | sudo tee /sys/class/leds/led0/trigger')
 
 def turn_led(state:bool=True):
     if state: os.system('echo 1 | sudo tee /sys/class/leds/led0/brightness > /dev/null 2>&1') # led on
