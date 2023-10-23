@@ -29,6 +29,9 @@ class check_code:
         self.check_files()
         self.check_dependecies()
         
+        # set the led up
+        os.system('echo gpio | sudo tee /sys/class/leds/led0/trigger')
+        
     def log_error(self, mssg:str=None):
         if mssg is None:
             raise TypeError("Unspecified error ecountered")
@@ -69,8 +72,8 @@ class check_code:
                 os.rename(self.errorfile, f"errorfile_old.txt") # we keep the old one when it reaches 100 Mb 
                 # the maximum size of errors is 200 Mb of data, plenty for debugging and not more than the RPi can handle
                 os.remove(self.errorfile)
-                self.create_errorfile
-        self.create_errorfile(self.errorfile) # This will either create the error file or log the start
+                self.create_errorfile()
+        self.create_errorfile() # This will either create the error file or log the start
 
         # the other files are pulled from git
         for file in files:
@@ -102,7 +105,7 @@ class check_code:
     def check_OS(self):
         """ uses pltform.system to check for Raspberrr OS   """
         os=platform.system()
-        if os == 'Raspbian GNU/Linux':
+        if os == 'Linux':
             return 
         self.crit_error(f"This code can olny work on Raspbian/ Raspberry OS. Your system runs {os}")
 
@@ -123,6 +126,3 @@ class check_code:
                 return 
             self.log_error("Github could not be reached at this time")
         self.log_error(f"Internet not availble or host {host} is down")
-
-
-first_run = check_code()

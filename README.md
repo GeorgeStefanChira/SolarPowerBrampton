@@ -108,6 +108,7 @@ There is no more documentation for this project, besides this README file and th
 | InfluxDB cloud API| [cloud_solution.py](/cloud_solution.py) | https://docs.influxdata.com/influxdb/cloud/api-guide/client-libraries/python/ |  
 | InfluxDB local API| [local_solution](/local_solution.py)|https://influxdb-python.readthedocs.io/en/latest/api-documentation.html|
 | InfluxDB database| install on RPi if using local solution| https://docs.influxdata.com/influxdb/v2/install/?t=Raspberry+Pi|
+| InfluxDB Cloud| setup cloud database| https://www.influxdata.com/products/influxdb-cloud/|
 | CPU data | [tools.py](/tools.py) / read_data()  |https://psutil.readthedocs.io/en/latest/#cpu|
 | RAM data|[tools.py](/tools.py) / read_data()  | https://psutil.readthedocs.io/en/latest/#memory|
 |Network data |[tools.py](/tools.py) / read_data()  |https://psutil.readthedocs.io/en/latest/#network |
