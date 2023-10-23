@@ -1,0 +1,16 @@
+[Unit]
+
+Description= Logs data from solar model
+After=graphical.target
+
+[Service]
+Type=idle
+
+User=pi
+ExecStart=/usr/bin/python3 /home/SolarPowerBrampton/main.py
+
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
