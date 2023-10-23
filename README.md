@@ -41,14 +41,13 @@ Logging these measurements into a database is done with [InfluxDB](https://www.i
 1. [local_solution.py](/local_solution.py) - to log data in a locally hosted InfluxDB database
 2. [cloud_solution.py](/cloud_solution.py) - to log data using InfluxDB Cloud.  
 
-[autostart.py](/autostart.py) is a file that is run at startup. It makes sure that everything works as it should and updates the code if needed
+[on_start.py](/autostart.py) is a file that is run at startup. It makes sure that everything works as it should and updates the code if needed
 
 All errors are handled by the [rpi_errors.py](/rpi_errors.py) file. There are different levels of errors because this code has to be operational even if someone who is not familiar with programming is using it. The following errors are used throughout the code:
   * Critical: only used when the code cannot function at all without solving this error, and it requires debugging.
-  * Connection: when internet connection is broken (maybe someone forgot to change to start a hotspot/ the SIM module is disconnected)
-  * Sending: it failed to log a point to the database. Blinks the LED twice to alert the user.
-  * Measuring: trying to take a measurement failed. Blinks 3 times
-  * Short: a quick LED blink for errors that aren't that important but should be acknowledged. 
+  * Sending: it failed to log a point to the database. Blinks the LED twice to alert the user. Most likely cause: network is down.
+  * Measuring: trying to take a measurement failed. Blinks 3 times, most likely cause: circuit break.
+  * Short: a quick LED blink for errors that aren't that important but should be acknowledged. Most likely cause: took to long to take a measurement.
   * Silent: for errors that don't matter, ie: measuring CPU use failed, this can be seen in the data and it should not be allowed to affect the rest of the process.
 
 ---
@@ -60,17 +59,30 @@ All errors are handled by the [rpi_errors.py](/rpi_errors.py) file. There are di
 ### Quick install 
 
 **On Raspberry Pi:**
-1. Clone the repo:
+1. Open terminal (Ctrl+alt+T)
+2. Navigate to Home folder:
+   
+        cd 
+3. Clone the repo:
         
         git clone https://github.com/GeorgeStefanChira/SolarPowerBrampton
-2. Edit [config.ini](/config.ini) file:
+4. Edit [config.ini](/config.ini) file:
 
         cd SolarPowerBrampton 
         nano config.ini
-3. Run autostart.py
+> Note: 
+> Set up your database at this point then
+> fill Cloud or Local depending on which database type you use
+> For more info see [the documentation section](#documentation)
 
-        python3 autostart.py
+5. Set the RPi to autostart the code:
+        
+        sudo mv SolarPowerBrampton.service /etc/systemd/system/
+        sudo chmod 644 /etc/systemd/system/SolarPowerBrampton.service
+        sudo systemctl daemon-reload
+        sudo systemctl enable SolarPowerBrampton.service
 
+> You can just run main.py without implementing the autostart part, but, obviously, note that you will have to run it each time manually.
 
 **On PC (for development):**
 
@@ -83,10 +95,9 @@ All errors are handled by the [rpi_errors.py](/rpi_errors.py) file. There are di
 
         sudo python -m venv ~/SolarPowerBrampton/env
         source env/bin/activate
-3. Install dependencies manually (autostart.py won't work on WSL) 
+3. Install dependencies manually 
    
         sudo pip install -r requirements.txt
-
 
 ## Documentation
 
@@ -101,7 +112,7 @@ There is no more documentation for this project, besides this README file and th
 | RAM data|[tools.py](/tools.py) / read_data()  | https://psutil.readthedocs.io/en/latest/#memory|
 |Network data |[tools.py](/tools.py) / read_data()  |https://psutil.readthedocs.io/en/latest/#network |
 | INA219 module|[tools.py](/tools.py) / read_data()  | https://learn.adafruit.com/adafruit-ina219-current-sensor-breakout|
-| RPi.GPIO | [rpi_errors.py](/rpi_errors.py)/ blink() | |
+| RPi.GPIO | [rpi_errors.py](/rpi_errors.py)/ blink() | https://forums.raspberrypi.com/viewtopic.php?p=1618077&sid=3e9f34a3aba32106516f1c102b6fa6e3#p1618077 |
 
 ## Contribution
 
