@@ -1,3 +1,17 @@
-|   Error log was created at 2023/10/22/14:16:36   |
-####################################################2023/10/22/14:21:17| When updating dependencies the following error was encountered:Command '['python3', 'pip', 'install', '-r', 'requirements.txt']' returned non-zero exit status 2. 
-2023/10/22/14:22:10| When updating dependencies the following error was encountered:Command '['python3', 'pip', 'install', '-r', 'requirements.txt']' returned non-zero exit status 2. 
+
+#################################################### 
+#   Error log was created at 2023/10/23/13:54:9   #
+####################################################
+#################################################### 
+#   Error log was created at 2023/10/23/14:17:2    #
+####################################################2023/10/23/14:17:2| This code can olny work on Raspbian/ Raspberry OS. 
+
+#################################################### 
+#   Error log was created at 2023/10/23/14:18:33    #
+#################################################### 
+2023/10/23/14:18:33| This code can olny work on Raspbian/ Raspberry OS. 
+
+#################################################### 
+#   Error log was created at 2023/10/23/14:22:8    #
+#################################################### 
+2023/10/23/14:22:8| This code can olny work on Raspbian/ Raspberry OS. Your system runs Linux 
