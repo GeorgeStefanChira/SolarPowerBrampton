@@ -27,13 +27,30 @@ https://forums.raspberrypi.com/viewtopic.php?p=136266&sid=3132a8d0ff07cb506a027c
     - Interface error
     - Data collection 
 """
-# import RPi.GPIO as GPIO
-import time
+import RPi.GPIO as GPIO
+import time, os
 
+os.system('echo gpio | sudo tee /sys/class/leds/led0/trigger')
+
+def turn_led(state:bool=True):
+    if state: os.system('echo 1 | sudo tee /sys/class/leds/led0/brightness > /dev/null 2>&1') # led on
+    else: os.system('echo 0 | sudo tee /sys/class/leds/led0/brightness > /dev/null 2>&1') # led off
 def Blink(number:int=None):
     if number is None: pass
-    for i in range(0,number):
-        print("blinking")
+    
+    if number== 1:
+            turn_led(0)
+            time.sleep(0.1)
+            turn_led(1)
+            time.sleep(0.1)
+            turn_led(0)
+    else: 
+        for i in range(number):
+            turn_led(0)
+            time.sleep(number)
+            turn_led(1)
+            time.sleep(number)
+            turn_led(0)
      
 def Record(message:str="Generic Error"):
     with open(file=f"errorfile.txt",mode="a+") as errorlog:
@@ -50,7 +67,7 @@ class CriticalError(Exception):
         Usecase: when a bug would stop the rest of the code from 
         functioning and requires more in depth analysis to solve 
         """
-        Blink(5)
+        Blink(4)
         Record(msg)
         super().__init__(msg)
         
