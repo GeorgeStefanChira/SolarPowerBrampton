@@ -1,1 +1,17 @@
-2023/10/21/17:18:28| Token was not imported from the export, or it was omitted 
+
+#################################################### 
+#   Error log was created at 2023/10/23/13:54:9   #
+####################################################
+#################################################### 
+#   Error log was created at 2023/10/23/14:17:2    #
+####################################################2023/10/23/14:17:2| This code can olny work on Raspbian/ Raspberry OS. 
+
+#################################################### 
+#   Error log was created at 2023/10/23/14:18:33    #
+#################################################### 
+2023/10/23/14:18:33| This code can olny work on Raspbian/ Raspberry OS. 
+
+#################################################### 
+#   Error log was created at 2023/10/23/14:22:8    #
+#################################################### 
+2023/10/23/14:22:8| This code can olny work on Raspbian/ Raspberry OS. Your system runs Linux 

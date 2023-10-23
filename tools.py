@@ -28,7 +28,22 @@ class read_data:
     
     """
     def __init__(self)->None:
-        pass
+        try:
+            # Create INA objects only once (as I should have done from the start))
+            self.ina_red = INA219(0.1, 3, address=0x40)
+            self.ina_red.configure(self.ina_red.RANGE_16V, self.ina_red.GAIN_AUTO)
+            
+            self.ina_green = INA219(0.1, 3, address=0x41)
+            self.ina_green.configure(self.ina_green.RANGE_16V, self.ina_green.GAIN_AUTO)
+            
+            self.ina_blue = INA219(0.1, 3, address=0x44)
+            self.ina_blue.configure(self.ina_blue.RANGE_16V, self.ina_blue.GAIN_AUTO)
+            
+            self.ina_bus = INA219(0.1, 3, address=0x44)
+            self.ina_bus.configure(self.ina_blue.RANGE_16V, self.ina_bus.GAIN_AUTO)
+        except Exception as err:
+            raise rpie.CriticalError(f"could not create INA Objects, error: {err}")
+        
         
     def read_ina219(self, ina):
         """ 
@@ -37,28 +52,18 @@ class read_data:
         Returns: dict: {voltage: float, power: float, bus_voltage:float}
         Raises:  MeasurementError: if measuring the voltage fails
         """
-        power = []
-        bus_voltage=[]
-        shunt_voltage=[]
-        
-        # measure 10 times per second
-        for x in range(10):
-            try:
-                v = ina.voltage()
-                v_shunt = ina.shunt_voltage()
-            except Exception as err:
-                raise rpie.MeasuringError("Error encountered when measuring voltage with the ina219")
-                
-            power.append(round(0.1*(v**2),3))
-            bus_voltage.append(round(v,3))
-            shunt_voltage.append(round(v_shunt,4))
-            time.sleep(0.1)
-        
+        # measurement
+        try:
+            v = ina.voltage()
+            v_shunt = ina.shunt_voltage()
+        except Exception as err:
+            rpie.MeasuringError("Error encountered when measuring voltage with the ina219")
+            
         # average and pack
         result = {
-            "voltage": float(np.average(shunt_voltage)),
-            "power": float(np.average(power)),
-            "bus_voltage": float(np.average(bus_voltage))
+            "voltage": round(v_shunt,4),
+            "power": round(0.1*(v**2),3),
+            "bus_voltage": round(v,3)
         }
         
         #send
@@ -70,30 +75,33 @@ class read_data:
         Returns:
             dict: { house/blue/green/red/bus: read_ina(), bus_average: {voltage: float, power: float}}
         """
-        
-        # This part is almost identical to the original, but with for loops and functions where apropriate.
-        ina_red = INA219(0.1, 3, address=0x40)
-        ina_red.configure(ina_red.RANGE_16V, ina_red.GAIN_AUTO)
-        
-        ina_green = INA219(0.1, 3, address=0x41)
-        ina_green.configure(ina_green.RANGE_16V, ina_green.GAIN_AUTO)
-        
-        ina_blue = INA219(0.1, 3, address=0x44)
-        ina_blue.configure(ina_blue.RANGE_16V, ina_blue.GAIN_AUTO)
-        
-        ina_bus = INA219(0.1, 3, address=0x44)
-        ina_bus.configure(ina_blue.RANGE_16V, ina_bus.GAIN_AUTO)
-        
+        # get the right shape
         data= {
-            "blue house": self.read_ina219(ina_blue),
-            "red house": self.read_ina219(ina_red),
-            "green house" :self.read_ina219(ina_green),
-            "bus": self.read_ina219(ina_bus)
+            "blue house": self.read_ina219(self.ina_blue),
+            "red house": self.read_ina219(self.ina_red),
+            "green house" :self.read_ina219(self.ina_green),
+            "bus": self.read_ina219(self.ina_bus)
         }
+        time.sleep(0.1) 
         
+        ina_list=[self.ina_blue, self.ina_red,self.ina_green, self.ina_bus]
+        data_keys=data.keys
+        
+        for x in range(9):
+            for i in range(4): # loop through all ina
+                measure = self.read_ina219(ina=ina_list[i])
+                for key in measure: # at every ina, loop through all measurements and add the value taken 
+                    data[data_keys[i]][key]+=measure[key]    
+            time.sleep(0.1) 
+
+        # average out every value
+        for key in data: 
+            for value in data[key]: 
+                value = value/10 # 10 because we measure once at start
+                
         # get average bus voltage
         bus_voltage=0
-        for key in data: bus_voltage += data[key]["bus_voltage"]
+        for key in ["blue_house","red_house","green_house"]: bus_voltage += data[key]["bus_voltage"]
         bus_voltage /= 3
         
         data["bus_average"]= {
@@ -117,7 +125,7 @@ class read_data:
             cpu_usage=psutil.cpu_percent()
             ram_usage=psutil.virtual_memory().used
         except Exception as err:
-            raise rpie.SilentError("CPU or RAM could not be measured")
+            rpie.SilentError("CPU or RAM could not be measured")
             cpu_usage= -1.0
             ram_usage= -1.0
 
@@ -141,14 +149,14 @@ class read_data:
             net_in = net_stat.bytes_recv
             net_out = net_stat.bytes_sent
         except Exception as err:
-            raise rpie.ShortError(f"Network mesurment failed: {err}")
+            rpie.ShortError(f"Network mesurment failed: {err}")
         return net_in,net_out
 
     def get_name(self):
         try:
             return socket.gethostname()
         except Exception as err:
-            raise rpie.SilentError(f"Hostname could not be accessed in get_name() function, error: {err}")
+            rpie.SilentError(f"Hostname could not be accessed in get_name() function, error: {err}")
             return "Name not found"
 
 class read_fake_data:
@@ -161,7 +169,10 @@ class read_fake_data:
     
     """
     def __init__(self)->None:
-        pass
+        self.ina_blue =1
+        self.ina_red =2
+        self.ina_green =3
+        self.ina_bus =0
         
     def measure(self):
         """
@@ -171,14 +182,34 @@ class read_fake_data:
         Returns:
             dict: { house/blue/green/red/bus: read_ina(), bus_average: {voltage: float, power: float}}
         """
+
+        # get the right shape
         data= {
-            "blue house": self.read_fake_ina219(1),
-            "red house": self.read_fake_ina219(2),
-            "green house" :self.read_fake_ina219(3) 
+            "blue house": self.read_ina219(self.ina_blue),
+            "red house": self.read_ina219(self.ina_red),
+            "green house" :self.read_ina219(self.ina_green),
+            "bus": self.read_ina219(self.ina_bus)
         }
+        time.sleep(0.1) 
         
+        ina_list=[self.ina_blue, self.ina_red,self.ina_green, self.ina_bus]
+        data_keys=data.keys
+        
+        for x in range(9):
+            for i in range(4): # loop through all ina
+                measure = self.read_ina219(ina=ina_list[i])
+                for key in measure: # at every ina, loop through all measurements and add the value taken 
+                    data[data_keys[i]][key]+=measure[key]    
+            time.sleep(0.1) 
+
+        # average out every value
+        for key in data: 
+            for value in data[key]: 
+                value = value/10 # 10 because we measure once at start
+                
+        # get average bus voltage
         bus_voltage=0
-        for key in data:bus_voltage += data[key]["bus_voltage"]
+        for key in ["blue_house","red_house","green_house"]: bus_voltage += data[key]["bus_voltage"]
         bus_voltage /= 3
         
         data["bus_average"]= {
@@ -217,7 +248,7 @@ class read_fake_data:
             cpu_usage= float(1*abs(np.sin(time.time_ns())))*100
             ram_usage= float(2*abs(np.cos(time.time_ns())))*500
         except Exception as err:
-            raise rpie.SilentError("CPU or RAM could not be measured")
+            rpie.SilentError("CPU or RAM could not be measured")
             cpu_usage= -1.0
             ram_usage= -1.0
 
@@ -239,7 +270,7 @@ class read_fake_data:
             net_in = float(2*abs(np.cos(time.time_ns())))*10
             net_out = float(2*abs(np.cos(time.time_ns())))*100
         except Exception as err:
-            raise rpie.ShortError(f"Network mesurment failed: {err}")
+            rpie.ShortError(f"Network mesurment failed: {err}")
         return net_in,net_out
 
     def get_name(self):
