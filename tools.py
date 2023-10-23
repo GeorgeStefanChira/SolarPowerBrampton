@@ -5,6 +5,7 @@ It's not as general as the upload classes, but can be addapted to different purp
 classes:
     - read_data: lets you read ina219 voltages, cpu and ram usage, and lets you send fake data
     - read_fake_data: copy of the above class for debugging purposes.
+    - read)config
 """
 
 from ina219 import INA219  # allows RPi to read voltages with the INA219 module
@@ -12,6 +13,7 @@ import psutil # cpu/ram/network monitoring
 import socket # hostname
 import numpy as np 
 import time
+from configparser import ConfigParser
 
 import rpi_errors as rpie
 
@@ -77,26 +79,26 @@ class read_data:
         """
         # get the right shape
         data= {
-            "blue house": self.read_ina219(self.ina_blue),
-            "red house": self.read_ina219(self.ina_red),
-            "green house" :self.read_ina219(self.ina_green),
+            "blue_house": self.read_ina219(self.ina_blue),
+            "red_house": self.read_ina219(self.ina_red),
+            "green_house" :self.read_ina219(self.ina_green),
             "bus": self.read_ina219(self.ina_bus)
         }
-        time.sleep(0.1) 
+        time.sleep(0.05) 
         
         ina_list=[self.ina_blue, self.ina_red,self.ina_green, self.ina_bus]
-        data_keys=data.keys
+        data_keys=list(data.keys())
         
         for x in range(9):
             for i in range(4): # loop through all ina
                 measure = self.read_ina219(ina=ina_list[i])
                 for key in measure: # at every ina, loop through all measurements and add the value taken 
                     data[data_keys[i]][key]+=measure[key]    
-            time.sleep(0.1) 
+            time.sleep(0.05) 
 
         # average out every value
-        for key in data: 
-            for value in data[key]: 
+        for key in data.keys(): 
+            for value in data[key].values(): 
                 value = value/10 # 10 because we measure once at start
                 
         # get average bus voltage
@@ -185,26 +187,26 @@ class read_fake_data:
 
         # get the right shape
         data= {
-            "blue house": self.read_ina219(self.ina_blue),
-            "red house": self.read_ina219(self.ina_red),
-            "green house" :self.read_ina219(self.ina_green),
+            "blue_house": self.read_ina219(self.ina_blue),
+            "red_house": self.read_ina219(self.ina_red),
+            "green_house" :self.read_ina219(self.ina_green),
             "bus": self.read_ina219(self.ina_bus)
         }
-        time.sleep(0.1) 
+        time.sleep(0.05) 
         
         ina_list=[self.ina_blue, self.ina_red,self.ina_green, self.ina_bus]
-        data_keys=data.keys
+        data_keys=list(data.keys())
         
         for x in range(9):
             for i in range(4): # loop through all ina
                 measure = self.read_ina219(ina=ina_list[i])
                 for key in measure: # at every ina, loop through all measurements and add the value taken 
-                    data[data_keys[i]][key]+=measure[key]    
-            time.sleep(0.1) 
+                    data[data_keys[i]][key]+=float(measure[key])    
+            time.sleep(0.05) 
 
         # average out every value
-        for key in data: 
-            for value in data[key]: 
+        for key in data.keys(): 
+            for value in data[key].values(): 
                 value = value/10 # 10 because we measure once at start
                 
         # get average bus voltage
@@ -219,7 +221,7 @@ class read_fake_data:
         
         return data
     
-    def read_ina219(self, x):
+    def read_ina219(self, ina):
         """ # Fake
         take an ina object and use it to read voltage data
         Args:    ina (object): pass an INA219() object 
@@ -227,9 +229,9 @@ class read_fake_data:
         Raises:  MeasurementError: if measuring the voltage fails
         """
         result = {
-            "voltage": float(x*np.sin(time.time_ns())),
-            "power": float(x*np.sin(time.time_ns())),
-            "bus_voltage": float(x*np.sin(time.time_ns()))
+            "voltage": float(ina*np.sin(time.time_ns())),
+            "power": float(ina*np.sin(time.time_ns())),
+            "bus_voltage": float(ina*np.sin(time.time_ns()))
         }
         return result
     
@@ -305,3 +307,32 @@ class read_fake_data:
     #         time.sleep(10)
     #         RPi.GPIO.output(16, RPi.GPIO.HIGH)
             
+class read_config:
+    def __init__(self, filename) -> None:
+        """
+        ## Reads the config file
+        
+        This is tailored to the specific config.ini file in this project.
+        
+        Doesn't have any error correction
+        """
+        self.config =ConfigParser() 
+        self.config.read(filenames=filename)
+    def get_methods(self):
+        cloud = self.config.getboolean(section="Method",option="Cloud") 
+        fake = self.config.getboolean(section="Method",option="Fake")
+        return cloud, fake
+    def get_time(self):
+        total_time= self.config.getint(section="Time", option="Seconds")/3
+        endless = self.config.getboolean(section="Time", option="Endless")
+        return total_time, endless
+    def get_cloud(self):
+        _dir={}
+        for item in ["bucket","org","token","url"]:
+            _dir[item]=self.config.get("Cloud", option=item)
+        return _dir
+    def get_local(self):
+        _dir={}
+        for item in ["ifuser","ifpass","ifdb","ifhost","ifport"]:
+            _dir[item]=self.config.get("Local", option=item)
+        return _dir

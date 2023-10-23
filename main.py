@@ -1,3 +1,6 @@
+from on_start import check_code
+check = check_code()
+
 import tools
 import rpi_errors as rpie
 from local_solution import upload_data_local_influx
@@ -7,21 +10,24 @@ import time, os
 if __name__== "__main__":
     
     # get the config values
+    config = tools.read_config("config.ini")
     
-    cloud_database = True  
-    use_fake = True
+    use_cloud_solution, use_fake = config.get_methods()
+    total_time, endless = config.get_time() 
     
-    if cloud_database:
-        send = upload_data_influxdb_cloud(bucket="Solar Power",
-                                            org="B2Z",
-                                            token= os.environ.get("INFLUXDB_TOKEN"),
-                                            url="https://eu-central-1-1.aws.cloud2.influxdata.com") 
+    if use_cloud_solution:
+        cloud_dir = config.get_cloud()
+        send = upload_data_influxdb_cloud(bucket=cloud_dir["bucket"],
+                                            org=cloud_dir["org"],
+                                            token= cloud_dir["token"],
+                                            url=cloud_dir["url"]) 
     else:    
-        send = upload_data_local_influx(ifuser="admin",
-                                        ifpass="you_thought_this_was_it",
-                                        ifdb="b2z",
-                                        ifhost="",
-                                        ifport= 8086) 
+        local_dir = config.get_local()
+        send = upload_data_local_influx(ifuser=local_dir["ifuser"],
+                                        ifpass=local_dir["ifpass"],
+                                        ifdb=local_dir["ifdb"],
+                                        ifhost=local_dir["ifhost"],
+                                        ifport= local_dir["ifport"]) 
 
     if use_fake:
         model = tools.read_fake_data()
@@ -35,7 +41,9 @@ if __name__== "__main__":
     # network data.
     hash_netin1, hash_netout2 = model.measure_network()
     
-    for i in range(360):
+    name = model.get_name()
+    i=0
+    while i< total_time:
         start_time=time.time_ns() 
         
         # net measuring part
@@ -45,11 +53,11 @@ if __name__== "__main__":
         
         # send cpu and ram data 
         cpu,ram = model.measure_cpu()
-        send.cpu_data(cpu,ram)
+        send.local_performance(machine_name=name,cpu_usage= cpu,ram_usage= ram)
         
         # voltage from the model
         data = model.measure()
-        send.generic(data=data,point_name="Electricity Gen",tag_name="House")
+        send.generic(data=data,point_name="Electricity Gen",tag_type="House")
         
 
         end_time=time.time_ns()
@@ -60,7 +68,7 @@ if __name__== "__main__":
         # if it' longer but still acceptable (10), then just send a short error
         # if it's shorter than 0, time travel (or trivial bug) -> short error
         # if the absolute value is larger than 10, then there is a big problem with the code
-        if time_elapsed > 3 and time_elapsed <10:
+        if time_elapsed > 4 and time_elapsed <10:
             rpie.ShortError(f"Total loop time: {time_elapsed} is {time_elapsed-3} longer than expected")
         elif time_elapsed < 0 :
             rpie.ShortError(f"Time travel discovered! We have returned {time_elapsed} seconds in the past! Initial time at {start_time}, final: {end_time}")
@@ -69,4 +77,4 @@ if __name__== "__main__":
         else:
             duration=max(1,(3-time_elapsed))  
             time.sleep(duration)
-        
+        if endless: i+=1
