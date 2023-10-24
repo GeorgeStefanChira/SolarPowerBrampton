@@ -44,7 +44,8 @@ class read_data:
             self.ina_bus = INA219(0.1, 3, address=0x44)
             self.ina_bus.configure(self.ina_blue.RANGE_16V, self.ina_bus.GAIN_AUTO)
         except Exception as err:
-            raise rpie.CriticalError(f"could not create INA Objects, error: {err}")
+            print("##################################")
+            raise rpie.CriticalError(f"could not create INA Objects, error: \n {err}")
         
         
     def read_ina219(self, ina):

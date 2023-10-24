@@ -1,5 +1,6 @@
 import time, os
-path = os.getcwd()
+import pathlib
+path=pathlib.Path(__file__).parent.resolve()
 print(path)
 from on_start import check_code
 check = check_code(path)
@@ -12,7 +13,7 @@ from cloud_solution import upload_data_influxdb_cloud
 if __name__== "__main__":
     
     # get the config values
-    config = tools.read_config(f"{path}/config copy.ini")
+    config = tools.read_config(f"{path}/config.ini")
     
     use_cloud_solution, use_fake = config.get_methods()
     total_time, endless = config.get_time() 
