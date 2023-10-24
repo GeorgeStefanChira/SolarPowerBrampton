@@ -27,32 +27,59 @@ https://forums.raspberrypi.com/viewtopic.php?p=136266&sid=3132a8d0ff07cb506a027c
     - Interface error
     - Data collection 
 """
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError as err:
+    print(f"No GPIO pins available on WSL: \n {err} \n From now on the code will print 'blink' ")
 import time, os
 
+path = os.getcwd()
 
 def turn_led(state:bool=True):
+    """Turn led on pin 18 on
+
+    Connect a 1k ressitor in series with an LED on pin 18, the other end to GND
+    This will blink that LED
+    Args:
+        state (bool, optional): _description_. Defaults to True.
+    """
+    try:
+        if state: GPIO.output(18,GPIO.HIGH)
+        else: GPIO.output(18,GPIO.LOW)    
+    except NameError as err:
+        print("blink")     
+def turn_board_led(state:bool=True):
+    """Use the LED files from sys/class/leds to control the onboard led
+
+    #! This only works on some boards
+    This won't work on Zero.
+    I recommend you add a physical LED and use that 
+    
+    
+    Args:
+        state (bool, optional): True = on, Flase= off. Defaults to True.
+    """
     if state: os.system('echo 1 | sudo tee /sys/class/leds/led0/brightness > /dev/null 2>&1') # led on
     else: os.system('echo 0 | sudo tee /sys/class/leds/led0/brightness > /dev/null 2>&1') # led off
+
 def Blink(number:int=None):
     if number is None: pass
     
     if number== 1:
-            turn_led(0)
-            time.sleep(0.1)
-            turn_led(1)
-            time.sleep(0.1)
-            turn_led(0)
+        turn_led(False)
+        time.sleep(0.1)
+        turn_led(True)
+        time.sleep(0.1)
+        turn_led(False)
     else: 
         for i in range(number):
-            turn_led(0)
+            turn_led(False)
             time.sleep(number)
-            turn_led(1)
+            turn_led(True)
             time.sleep(number)
-            turn_led(0)
-     
+            turn_led(False)    
 def Record(message:str="Generic Error"):
-    with open(file=f"errorfile.txt",mode="a+") as errorlog:
+    with open(file=f"{path}/errorfile.txt",mode="a+") as errorlog:
         date= time.localtime()
         errorlog.write(f"{date.tm_year}/{date.tm_mon}/{date.tm_mday}/{date.tm_hour}:{date.tm_min}:{date.tm_sec}| {message} \n")
         
