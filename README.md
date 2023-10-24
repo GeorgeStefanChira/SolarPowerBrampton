@@ -46,6 +46,7 @@ Logging these measurements into a database is done with [InfluxDB](https://www.i
 [on_start.py](/autostart.py) is a file that is run at startup. It makes sure that everything works as it should and updates the code if needed, as well as sets up the LED on pin 18.
 
 All errors are handled by the [rpi_errors.py](/rpi_errors.py) file. There are different levels of errors because this code has to be operational even if someone who is not familiar with programming is using it. The following errors are used throughout the code:
+  * Normal function: It blinks (1 second on, half a second off) 10 times at start then blinks in a heartbeat pattern every three seconds. If you see this pattern, there are no important problems in the run. If any issues occur, then they heartbeat either stops or is accompanied by one of the following errors:
   * Critical: only used when the code cannot function at all without solving this error, and it requires debugging.
   * Sending: it failed to log a point to the database. Blinks the LED twice to alert the user. Most likely cause: network is down.
   * Measuring: trying to take a measurement failed. Blinks 3 times, most likely cause: circuit break.
