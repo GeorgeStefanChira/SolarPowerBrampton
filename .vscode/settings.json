@@ -7,7 +7,9 @@
         "Fitzsimons",
         "GPIO",
         "Lalli",
+        "libatlas",
         "MPPT",
+        "numpy",
         "Tarun",
         "Tres",
         "wifi"
