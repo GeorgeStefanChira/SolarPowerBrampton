@@ -5,14 +5,14 @@ It's not as general as the upload classes, but can be addapted to different purp
 classes:
     - read_data: lets you read ina219 voltages, cpu and ram usage, and lets you send fake data
     - read_fake_data: copy of the above class for debugging purposes.
-    - read)config
+    - read_config: reads the config files for the project
 """
 
 from ina219 import INA219  # allows RPi to read voltages with the INA219 module
 import psutil # cpu/ram/network monitoring
 import socket # hostname
 import numpy as np 
-import time
+import time, os
 from configparser import ConfigParser
 
 import rpi_errors as rpie
@@ -317,6 +317,12 @@ class read_config:
         Doesn't have any error correction
         """
         self.config =ConfigParser() 
+        
+        try:
+            os.path.isfile(filename)
+        except:
+            raise rpie.CriticalError(f"{filename} is nt the correct path!")
+        
         self.config.read(filenames=filename)
     def get_methods(self):
         cloud = self.config.getboolean(section="Method",option="Cloud") 

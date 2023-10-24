@@ -1,16 +1,18 @@
+import time, os
+path = os.getcwd()
+print(path)
 from on_start import check_code
-check = check_code()
+check = check_code(path)
 
 import tools
 import rpi_errors as rpie
 from local_solution import upload_data_local_influx
 from cloud_solution import upload_data_influxdb_cloud
-import time, os
 
 if __name__== "__main__":
     
     # get the config values
-    config = tools.read_config("config.ini")
+    config = tools.read_config(f"{path}/config copy.ini")
     
     use_cloud_solution, use_fake = config.get_methods()
     total_time, endless = config.get_time() 
@@ -46,6 +48,14 @@ if __name__== "__main__":
     while i< total_time:
         start_time=time.time_ns() 
         
+        rpie.turn_led(True)
+        time.sleep(0.1)
+        rpie.turn_led(False)
+        time.sleep(0.1)
+        rpie.turn_led(True)
+        time.sleep(0.2)
+        rpie.turn_led(False)
+        
         # net measuring part
         net_in, net_out = model.measure_network()
         send.net_usage(net_in=( (net_in-hash_netin1) /1024 /1024), net_out=((net_out-hash_netout2) / 1024 /1024))
@@ -68,6 +78,8 @@ if __name__== "__main__":
         # if it' longer but still acceptable (10), then just send a short error
         # if it's shorter than 0, time travel (or trivial bug) -> short error
         # if the absolute value is larger than 10, then there is a big problem with the code
+        
+        
         if time_elapsed > 4 and time_elapsed <10:
             rpie.ShortError(f"Total loop time: {time_elapsed} is {time_elapsed-3} longer than expected")
         elif time_elapsed < 0 :
@@ -77,4 +89,5 @@ if __name__== "__main__":
         else:
             duration=max(1,(3-time_elapsed))  
             time.sleep(duration)
+        
         if endless: i+=1

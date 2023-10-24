@@ -12,7 +12,7 @@ import subprocess
 import platform 
 
 class check_code:
-    def __init__(self) -> None:
+    def __init__(self, path) -> None:
         """## Verify code before start
         
          This class checks for:
@@ -22,7 +22,8 @@ class check_code:
             - file management (removes error logs if they are larger than 100 mb)
 
         """
-        self.errorfile = "errorfile.txt"
+        self.path= path
+        self.errorfile = f"{path}/errorfile.txt"
 
         self.check_OS()
         self.check_network()
@@ -30,8 +31,30 @@ class check_code:
         self.check_dependecies()
         
         # set the led up
-        os.system('echo gpio | sudo tee /sys/class/leds/led0/trigger')
         
+        try:
+            import RPi.GPIO as GPIO
+
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setwarnings(False)
+            GPIO.setup(18,GPIO.OUT)
+        
+            for i in range(10):
+                GPIO.output(18,GPIO.HIGH)
+                time.sleep(1)
+                GPIO.output(18,GPIO.LOW)
+                time.sleep(0.5)
+        except RuntimeError as err:
+            print(f"The blinking is disabled on WSL: \n {err}")    
+        # The following code is for onboard led:
+        # I commented it out because it doesn't work for my board but you might want 
+        # to try and waste your time too! If you get it running, well, let me know!
+        
+        # try:
+        #     os.system('echo gpio | sudo tee /sys/class/leds/led0/trigger')
+        # except:
+        #     print("Led could not be set up, errors not visible!")
+    
     def log_error(self, mssg:str=None):
         if mssg is None:
             raise TypeError("Unspecified error ecountered")
@@ -57,7 +80,7 @@ class check_code:
             
     def check_files(self, files:[str,...]=None):
         if files is None: 
-            files= ["main.py","cloud_solution.py", "local_solution.py","rpi_errors.py",
+            files= ["cloud_solution.py", "local_solution.py","rpi_errors.py",
                     "tools.py", "requirements.txt", "config.ini"]
         
         # The errorfile has to be handled separate
@@ -77,7 +100,7 @@ class check_code:
 
         # the other files are pulled from git
         for file in files:
-            if not os.path.isfile((file)):
+            if not os.path.isfile((f"{self.path}/{file}")):
                 self.log_error(f"{file} is missing. Attempting install")
                 # reinstall from git
                 try:
@@ -98,7 +121,7 @@ class check_code:
             crit-error: when something doesn't work
         """
         try:
-            pip_install = subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'])
+            pip_install = subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', f'{self.path}/requirements.txt'])
         except Exception as err:
             self.crit_error(f"When updating dependencies the following error was encountered:{err}")
 
